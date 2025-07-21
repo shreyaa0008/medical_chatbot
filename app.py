@@ -89,9 +89,21 @@ async def show_register_page(request: Request):
 
 @app.post("/register")
 async def register_user(username: str = Form(...), email: str = Form(...), password: str = Form(...)):
-    existing_user = await users_collection.find_one({"username": username})
+    # Check for existing username or email
+    existing_user = await users_collection.find_one({"$or": [{"username": username}, {"email": email}]})
     if existing_user:
-        raise HTTPException(status_code=400, detail="Username already exists")
+        if existing_user["username"] == username:
+            raise HTTPException(status_code=400, detail="Username already exists")
+        else:
+            raise HTTPException(status_code=400, detail="Email already registered")
+
+    # Validate password strength (at least 8 characters, containing letters and numbers)
+    if len(password) < 8 or not any(c.isalpha() for c in password) or not any(c.isdigit() for c in password):
+        raise HTTPException(status_code=400, detail="Password must be at least 8 characters long and contain both letters and numbers")
+
+    # Validate email format
+    if not "@" in email or not "." in email:
+        raise HTTPException(status_code=400, detail="Invalid email format")
 
     hashed_pw = hash_password(password)
 
@@ -99,28 +111,57 @@ async def register_user(username: str = Form(...), email: str = Form(...), passw
         "username": username,
         "email": email,
         "hashed_password": hashed_pw,
-        "created_at": datetime.utcnow()
+        "created_at": datetime.utcnow(),
+        "last_login": None
     }
 
-    await users_collection.insert_one(new_user)
-    return RedirectResponse("/login", status_code=302)
+    try:
+        await users_collection.insert_one(new_user)
+        return RedirectResponse("/login", status_code=302)
+    except Exception as e:
+        logger.error(f"Database error during registration: {str(e)}")
+        raise HTTPException(status_code=500, detail="Registration failed due to server error")
 
 @app.post("/login")
 async def login_post(request: Request):
-    form = await request.form()
-    username = form.get("username")
-    password = form.get("password")
+    try:
+        form = await request.form()
+        username = form.get("username")
+        password = form.get("password")
 
-    user = await users_collection.find_one({"username": username})
-    if not user or not verify_password(password, user["hashed_password"]):
+        if not username or not password:
+            return template.TemplateResponse("login.html", {
+                "request": request,
+                "error": "Username and password are required"
+            })
+
+        user = await users_collection.find_one({"username": username})
+        if not user or not verify_password(password, user["hashed_password"]):
+            return template.TemplateResponse("login.html", {
+                "request": request,
+                "error": "Invalid credentials"
+            })
+
+        # Update last login time
+        await users_collection.update_one(
+            {"_id": user["_id"]},
+            {"$set": {"last_login": datetime.utcnow()}}
+        )
+        
+        # Store more secure session data
+        request.session["user"] = {
+            "id": str(user["_id"]),
+            "username": user["username"],
+            "email": user["email"]
+        }
+        
+        return RedirectResponse("/dashboard", status_code=302)
+    except Exception as e:
+        logger.error(f"Login error: {str(e)}")
         return template.TemplateResponse("login.html", {
             "request": request,
-            "error": "Invalid credentials"
+            "error": "An error occurred during login"
         })
-
-    
-    request.session["user"] = {"username": user["username"]}
-    return RedirectResponse("/dashboard", status_code=302)
 
 @app.get("/logout")
 async def logout(request: Request):

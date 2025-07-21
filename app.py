@@ -46,7 +46,6 @@ logger = logging.getLogger(__name__)
 
 
 app = FastAPI()
-load_dotenv()
 SECRET_KEY = os.getenv("SECRET_KEY")
 app.add_middleware(SessionMiddleware, secret_key=SECRET_KEY)
 template = Jinja2Templates(directory="template")
@@ -105,12 +104,12 @@ async def register_user(username: str = Form(...), email: str = Form(...), passw
     if not "@" in email or not "." in email:
         raise HTTPException(status_code=400, detail="Invalid email format")
 
-    hashed_pw = hash_password(password)
+    # hashed_pw = hash_password(password)
 
     new_user = {
         "username": username,
         "email": email,
-        "hashed_password": hashed_pw,
+        "hashed_password": password,
         "created_at": datetime.utcnow(),
         "last_login": None
     }
@@ -129,6 +128,9 @@ async def login_post(request: Request):
         username = form.get("username")
         password = form.get("password")
 
+        print(f"Login attempt with username: {username}")
+        print(f"Login attempt with password: {password}")
+
         if not username or not password:
             return template.TemplateResponse("login.html", {
                 "request": request,
@@ -136,7 +138,7 @@ async def login_post(request: Request):
             })
 
         user = await users_collection.find_one({"username": username})
-        if not user or not verify_password(password, user["hashed_password"]):
+        if password != user.get("hashed_password"):
             return template.TemplateResponse("login.html", {
                 "request": request,
                 "error": "Invalid credentials"

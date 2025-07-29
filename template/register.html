@@ -309,7 +309,7 @@
                 Create New Account
             </div>
 
-            <div class="form-requirements">
+            <!-- <div class="form-requirements">
                 <div class="requirement">
                     <i class="fas fa-check-circle"></i>
                     <span>Username must be at least 3 characters long</span>
@@ -321,7 +321,7 @@
                 <div class="requirement">
                     <i class="fas fa-check-circle"></i>
                     <span>Include uppercase, lowercase, and numbers</span>
-                </div>
+                </div> -->
             </div>
 
             <div id="error-message" class="error-message" style="display: none;">
@@ -447,7 +447,7 @@
 
         // Form validation and submission
         registerForm.addEventListener('submit', function(e) {
-            e.preventDefault();
+            
             
             const username = document.getElementById('username').value;
             const email = document.getElementById('email').value;
@@ -476,35 +476,16 @@
 
             if (!password.match(/[a-z]/) || !password.match(/[A-Z]/) || !password.match(/[0-9]/)) {
                 showError('Password must contain uppercase, lowercase, and numeric characters');
+                e.preventDefault();
                 return;
              }
 
             // Simulate form submission
-            submitBtn.disabled = true;
-            loadingSpinner.style.display = 'inline-block';
-            buttonText.style.display = 'none';
+           
 
-            // Simulated delay (replace with actual fetch/axios call to backend)
-            setTimeout(() => {
-                loadingSpinner.style.display = 'none';
-                buttonText.style.display = 'inline-block';
-                submitBtn.disabled = false;
-
-                // Show success
-                successMessage.style.display = 'flex';
-
-                // Optionally redirect after a short delay
-                setTimeout(() => {
-                    window.location.href = '/login';
-                }, 2000);
-            }, 1500);
+            // Prevent actual form submission for demo
+            
         });
-
-        // Show error helper
-        function showError(message) {
-            errorText.textContent = message;
-            errorMessage.style.display = 'flex';
-        }
     </script>
 </body>
 </html>

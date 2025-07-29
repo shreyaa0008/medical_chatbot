@@ -28,7 +28,7 @@
             box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
             backdrop-filter: blur(10px);
             width: 100%;
-            max-width: 800px;
+            max-width: 1200px;
             overflow: hidden;
             animation: slideIn 0.8s ease-out;
         }
@@ -97,7 +97,7 @@
         .chat-container {
             padding: 30px;
             min-height: 400px;
-            max-height: 600px;
+            max-height: 800px;
             overflow-y: auto;
         }
 
@@ -234,12 +234,24 @@
             display: block;
         }
 
+        .results-grid {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 30px;
+            margin-top: 20px;
+        }
+
+        .ai-responses {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
         .model-response {
             background: white;
             border-left: 4px solid #2c5aa0;
             border-radius: 10px;
             padding: 20px;
-            margin-bottom: 20px;
             box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
             transition: all 0.3s ease;
         }
@@ -274,6 +286,133 @@
         .model-content {
             line-height: 1.6;
             color: #333;
+        }
+
+        .doctors-section {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+            height: fit-content;
+        }
+
+        .doctors-title {
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: #2c5aa0;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .doctors-title i {
+            color: #28a745;
+        }
+
+        .doctor-card {
+            background: linear-gradient(135deg, #f8f9ff 0%, #fff 100%);
+            border: 1px solid #e1e8ed;
+            border-radius: 12px;
+            padding: 18px;
+            margin-bottom: 15px;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .doctor-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(44, 90, 160, 0.1);
+            border-color: #2c5aa0;
+        }
+
+        .doctor-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, #2c5aa0, #28a745, #17a2b8);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .doctor-card:hover::before {
+            opacity: 1;
+        }
+
+        .doctor-name {
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: #2c5aa0;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .doctor-specialty {
+            font-size: 0.9rem;
+            color: #28a745;
+            font-weight: 600;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .doctor-info {
+            font-size: 0.85rem;
+            color: #666;
+            margin-bottom: 4px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .doctor-info i {
+            width: 12px;
+            color: #2c5aa0;
+        }
+
+        .doctor-rating {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            font-size: 0.85rem;
+            color: #ffc107;
+            margin-top: 8px;
+        }
+
+        .doctor-rating .rating-text {
+            color: #666;
+            margin-left: 5px;
+        }
+
+        .location-section {
+            background: linear-gradient(135deg, #fff3cd 0%, #ffeaa7 100%);
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .location-btn {
+            background: linear-gradient(135deg, #ffc107 0%, #ff8f00 100%);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .location-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(255, 193, 7, 0.3);
         }
 
         .image-preview {
@@ -312,6 +451,20 @@
             display: block;
         }
 
+        .no-doctors {
+            text-align: center;
+            color: #666;
+            font-style: italic;
+            padding: 20px;
+        }
+
+        @media (max-width: 1024px) {
+            .results-grid {
+                grid-template-columns: 1fr;
+                gap: 20px;
+            }
+        }
+
         @media (max-width: 768px) {
             .container {
                 margin: 10px;
@@ -333,6 +486,14 @@
             .upload-section {
                 padding: 20px;
             }
+
+            .doctors-section {
+                padding: 15px;
+            }
+
+            .doctor-card {
+                padding: 15px;
+            }
         }
     </style>
 </head>
@@ -340,12 +501,23 @@
     <div class="container">
         <div class="header">
             <h1><i class="fas fa-user-md"></i> Medical AI Assistant</h1>
-            <p class="subtitle">Advanced AI-powered medical image and text analysis</p>
+            <p class="subtitle">Advanced AI-powered medical image and text analysis with nearby doctor recommendations</p>
             <i class="fas fa-heartbeat medical-icon"></i>
         </div>
         
         <div class="chat-container">
             <form id="uploadForm" enctype="multipart/form-data">
+                <div class="location-section">
+                    <p style="margin-bottom: 10px; color: #856404;">
+                        <i class="fas fa-map-marker-alt"></i>
+                        Enable location to find nearby doctors
+                    </p>
+                    <button type="button" class="location-btn" onclick="getLocation()">
+                        <i class="fas fa-crosshairs"></i> Get My Location
+                    </button>
+                    <div id="locationStatus" style="margin-top: 10px; font-size: 0.9rem;"></div>
+                </div>
+
                 <div class="upload-section" id="uploadSection">
                     <div class="file-input-wrapper">
                         <input type="file" id="image" name="image" accept="image/*" class="file-input" required>
@@ -377,7 +549,7 @@
             
             <div class="loading" id="loading">
                 <div class="spinner"></div>
-                <p style="margin-top: 10px; color: #666;">AI models are analyzing your medical image...</p>
+                <p style="margin-top: 10px; color: #666;">AI models are analyzing your medical image and finding nearby doctors...</p>
             </div>
             
             <div class="error-message" id="errorMessage">
@@ -386,20 +558,44 @@
             </div>
             
             <div class="response-section" id="responseSection">
-                <div class="model-response llama11b" id="llama11bResponse">
-                    <div class="model-title">
-                        <i class="fas fa-robot model-icon"></i>
-                        LLaMA 11B Analysis
+                <div class="results-grid">
+                    <div class="ai-responses">
+                        <div class="model-response llama11b" id="llama11bResponse">
+                            <div class="model-title">
+                                <i class="fas fa-robot model-icon"></i>
+                                LLaMA 11B Analysis
+                            </div>
+                            <div class="model-content" id="llama11bContent"></div>
+                        </div>
+                        
+                        <div class="model-response llama90b" id="llama90bResponse">
+                            <div class="model-title">
+                                <i class="fas fa-brain model-icon"></i>
+                                LLaMA 90B Analysis
+                            </div>
+                            <div class="model-content" id="llama90bContent"></div>
+                        </div>
                     </div>
-                    <div class="model-content" id="llama11bContent"></div>
-                </div>
-                
-                <div class="model-response llama90b" id="llama90bResponse">
-                    <div class="model-title">
-                        <i class="fas fa-brain model-icon"></i>
-                        LLaMA 90B Analysis
+                    
+
+
+                    <div class="doctors-section" id="doctorsSection">
+                        <div class="doctors-title">
+                            <i class="fas fa-user-md"></i>
+                            Nearby Doctors
+                        </div>
+                        <div id="doctorsContainer">
+                            <div class="no-doctors">
+                                Doctors will appear here after analysis
+                            </div>
+                        </div>
+                    
                     </div>
-                    <div class="model-content" id="llama90bContent"></div>
+                    <div style="text-align: right; margin-top: 20px;">
+    <button onclick="downloadReport()" class="submit-btn" style="max-width: 300px; margin-left: auto;">
+        <i class="fas fa-file-download"></i> Download PDF Report
+    </button>
+</div>
                 </div>
             </div>
         </div>
@@ -417,6 +613,59 @@
         const imagePreview = document.getElementById('imagePreview');
         const previewImg = document.getElementById('previewImg');
         const fileInfo = document.getElementById('fileInfo');
+        const doctorsContainer = document.getElementById('doctorsContainer');
+
+        let userLocation = null;
+
+        // Location functions
+        function getLocation() {
+            const locationStatus = document.getElementById('locationStatus');
+            
+            if (navigator.geolocation) {
+                locationStatus.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Getting location...';
+                
+                navigator.geolocation.getCurrentPosition(
+                    function(position) {
+                        userLocation = {
+                            latitude: position.coords.latitude,
+                            longitude: position.coords.longitude
+                        };
+                        
+                        // Send location to backend
+                        updateLocationOnServer(userLocation.latitude, userLocation.longitude);
+                        
+                        locationStatus.innerHTML = '<i class="fas fa-check-circle" style="color: #28a745;"></i> Location enabled';
+                    },
+                    function(error) {
+                        console.error('Error getting location:', error);
+                        locationStatus.innerHTML = '<i class="fas fa-exclamation-circle" style="color: #dc3545;"></i> Location access denied';
+                    }
+                );
+            } else {
+                locationStatus.innerHTML = '<i class="fas fa-exclamation-circle" style="color: #dc3545;"></i> Geolocation not supported';
+            }
+        }
+
+        async function updateLocationOnServer(latitude, longitude) {
+            try {
+                const formData = new FormData();
+                formData.append('latitude', latitude);
+                formData.append('longitude', longitude);
+                
+                const response = await fetch('/update_location', {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                if (response.ok) {
+                    console.log('Location updated successfully');
+                } else {
+                    console.error('Failed to update location');
+                }
+            } catch (error) {
+                console.error('Error updating location:', error);
+            }
+        }
 
         // File upload preview
         imageInput.addEventListener('change', function(e) {
@@ -478,9 +727,13 @@
                 const result = await response.json();
                 
                 if (response.ok) {
-                    // Display responses
+                    // Display AI responses
                     document.getElementById('llama11bContent').innerHTML = formatResponse(result.llama || result.llama11b);
                     document.getElementById('llama90bContent').innerHTML = formatResponse(result.llava || result.llama90b);
+                    
+                    // Display doctors
+                    displayDoctors(result.doctors || []);
+                    
                     responseSection.classList.add('show');
                 } else {
                     showError('Analysis failed: ' + (result.detail || 'Unknown error'));
@@ -493,6 +746,67 @@
                 submitBtn.innerHTML = '<i class="fas fa-stethoscope"></i> Analyze Medical Image';
             }
         });
+
+        function displayDoctors(doctors) {
+            if (!doctors || doctors.length === 0) {
+                doctorsContainer.innerHTML = '<div class="no-doctors">No nearby doctors found</div>';
+                return;
+            }
+
+            const doctorsHTML = doctors.map(doctor => `
+                <div class="doctor-card">
+                    <div class="doctor-name">
+                        <i class="fas fa-user-md"></i>
+                        ${doctor.name || 'Dr. Unknown'}
+                    </div>
+                    <div class="doctor-specialty">
+                        <i class="fas fa-stethoscope"></i>
+                        ${doctor.specialty || 'General Practice'}
+                    </div>
+                    <div class="doctor-info">
+                        <i class="fas fa-map-marker-alt"></i>
+                        ${doctor.location || doctor.address || 'Location not available'}
+                    </div>
+                    <div class="doctor-info">
+                        <i class="fas fa-phone"></i>
+                        ${doctor.contact || 'Contact not available'}
+                    </div>
+                    <div class="doctor-info">
+                        <i class="fas fa-route"></i>
+                        ${doctor.distance || 'Distance unknown'}
+                    </div>
+                    ${doctor.rating ? `
+                        <div class="doctor-rating">
+                            ${generateStars(doctor.rating)}
+                            <span class="rating-text">${doctor.rating}/5</span>
+                        </div>
+                    ` : ''}
+                </div>
+            `).join('');
+
+            doctorsContainer.innerHTML = doctorsHTML;
+        }
+
+        function generateStars(rating) {
+            const fullStars = Math.floor(rating);
+            const hasHalfStar = rating % 1 >= 0.5;
+            let starsHTML = '';
+            
+            for (let i = 0; i < fullStars; i++) {
+                starsHTML += '<i class="fas fa-star"></i>';
+            }
+            
+            if (hasHalfStar) {
+                starsHTML += '<i class="fas fa-star-half-alt"></i>';
+            }
+            
+            const emptyStars = 5 - fullStars - (hasHalfStar ? 1 : 0);
+            for (let i = 0; i < emptyStars; i++) {
+                starsHTML += '<i class="far fa-star"></i>';
+            }
+            
+            return starsHTML;
+        }
 
         function formatResponse(text) {
             if (!text) return 'No response received';
@@ -511,6 +825,46 @@
             document.getElementById('errorText').textContent = message;
             errorMessage.classList.add('show');
         }
+
+        // Auto-detect location on page load 
+        window.addEventListener('load', function() {
+            // getLocation();
+        });
+        async function downloadReport() {
+    const llama = document.getElementById('llama11bContent').innerText;
+    const llava = document.getElementById('llama90bContent').innerText;
+    const query = document.getElementById('query').value;
+
+    const doctorCards = document.querySelectorAll('.doctor-card');
+    const doctors = Array.from(doctorCards).map(card => {
+        return {
+            name: card.querySelector('.doctor-name')?.textContent?.trim(),
+            specialty: card.querySelector('.doctor-specialty')?.textContent?.trim(),
+            location: card.querySelector('.doctor-info:nth-of-type(1)')?.textContent?.trim(),
+            contact: card.querySelector('.doctor-info:nth-of-type(2)')?.textContent?.trim()
+        };
+    });
+
+    const response = await fetch('/download_report', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ query, llama, llava, doctors })
+    });
+
+    if (response.ok) {
+        const blob = await response.blob();
+        const url = window.URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = "Medical_Report.pdf";
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    } else {
+        alert("Failed to generate report.");
+    }
+}
+
     </script>
 </body>
 </html>

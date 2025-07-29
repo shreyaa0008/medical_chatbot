@@ -171,37 +171,6 @@
             transform: none;
         }
 
-        .api-btn {
-            background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
-        }
-
-        .api-btn:hover {
-            box-shadow: 0 10px 25px rgba(40, 167, 69, 0.3);
-        }
-
-        .divider {
-            text-align: center;
-            margin: 25px 0;
-            position: relative;
-            color: #666;
-        }
-
-        .divider::before {
-            content: '';
-            position: absolute;
-            top: 50%;
-            left: 0;
-            right: 0;
-            height: 1px;
-            background: #e1e8ed;
-        }
-
-        .divider span {
-            background: rgba(255, 255, 255, 0.95);
-            padding: 0 20px;
-            position: relative;
-        }
-
         .error-message {
             background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
             color: white;
@@ -239,6 +208,7 @@
             border-top: 2px solid white;
             border-radius: 50%;
             animation: spin 1s linear infinite;
+            margin-right: 10px;
         }
 
         @keyframes spin {
@@ -301,19 +271,20 @@
             </div>
             {% endif %}
 
-            <!-- Traditional Form Login -->
+            <!-- Login Form -->
             <div class="form-section">
                 <div class="section-title">
                     <i class="fas fa-sign-in-alt"></i>
-                    Quick Login
+                    Sign In
                 </div>
                 
-                <form method="post" action="/login">
+                <form method="post" action="/login" id="loginForm">
                     <div class="input-group">
                         <i class="fas fa-user input-icon"></i>
                         <input
                             type="text"
                             name="username"
+                            id="username"
                             placeholder="Enter your username"
                             required
                             class="form-input"
@@ -325,71 +296,21 @@
                         <input
                             type="password"
                             name="password"
+                            id="password"
                             placeholder="Enter your password"
                             required
                             class="form-input"
                         />
                     </div>
                     
-                    <button type="submit" class="submit-btn">
-                        <i class="fas fa-sign-in-alt"></i>
-                        Sign In
-                    </button>
-                </form>
-            </div>
-
-            <div class="divider">
-                <span>or</span>
-            </div>
-
-            <!-- API Login -->
-            <div class="form-section">
-                <div class="section-title">
-                    <i class="fas fa-key"></i>
-                    API Login (JWT)
-                </div>
-                
-                <form id="apiLoginForm">
-                    <div class="input-group">
-                        <i class="fas fa-user input-icon"></i>
-                        <input
-                            type="text"
-                            id="api-username"
-                            placeholder="Enter your username"
-                            required
-                            class="form-input"
-                        />
-                    </div>
-                    
-                    <div class="input-group">
-                        <i class="fas fa-lock input-icon"></i>
-                        <input
-                            type="password"
-                            id="api-password"
-                            placeholder="Enter your password"
-                            required
-                            class="form-input"
-                        />
-                    </div>
-                    
-                    <button type="submit" class="submit-btn api-btn" id="apiSubmitBtn">
+                    <button type="submit" class="submit-btn" id="submitBtn">
                         <div class="loading-spinner" id="loadingSpinner"></div>
                         <span id="buttonText">
-                            <i class="fas fa-key"></i>
-                            Sign In with JWT
+                            <i class="fas fa-sign-in-alt"></i>
+                            Sign In
                         </span>
                     </button>
                 </form>
-
-                <div id="api-error" class="error-message" style="display: none;">
-                    <i class="fas fa-exclamation-triangle"></i>
-                    <span id="api-error-text"></span>
-                </div>
-
-                <div id="api-success" class="success-message" style="display: none;">
-                    <i class="fas fa-check-circle"></i>
-                    <span>Login successful! Redirecting...</span>
-                </div>
             </div>
 
             <div class="register-link">
@@ -399,67 +320,37 @@
     </div>
 
     <script>
-        document.getElementById("apiLoginForm").addEventListener("submit", async function (e) {
-            e.preventDefault();
-
-            const username = document.getElementById("api-username").value;
-            const password = document.getElementById("api-password").value;
-            const submitBtn = document.getElementById("apiSubmitBtn");
+        // Form login with loading state
+        document.getElementById("loginForm").addEventListener("submit", function(e) {
+            const submitBtn = document.getElementById("submitBtn");
             const loadingSpinner = document.getElementById("loadingSpinner");
             const buttonText = document.getElementById("buttonText");
-            const errorDiv = document.getElementById("api-error");
-            const successDiv = document.getElementById("api-success");
-            const errorText = document.getElementById("api-error-text");
-
-            // Hide previous messages
-            errorDiv.style.display = "none";
-            successDiv.style.display = "none";
-
+            const username = document.getElementById("username").value.trim();
+            const password = document.getElementById("password").value.trim();
+            
+            // Client-side validation
+            if (!username || !password) {
+                e.preventDefault();
+                alert("Please fill in both username and password fields.");
+                return false;
+            }
+            
             // Show loading state
             submitBtn.disabled = true;
             loadingSpinner.style.display = "inline-block";
             buttonText.innerHTML = "Signing in...";
+        });
 
-            const formData = new URLSearchParams();
-            formData.append("username", username);
-            formData.append("password", password);
-
-            try {
-                const response = await fetch("/api/login", {
-                    method: "POST",
-                    headers: {
-                        "Content-Type": "application/x-www-form-urlencoded",
-                    },
-                    body: formData,
-                });
-
-                if (!response.ok) {
-                    const errorData = await response.json();
-                    throw new Error(errorData.detail || "Login failed");
-                }
-
-                const result = await response.json();
-                
-                // Show success message
-                successDiv.style.display = "flex";
-                
-                // Simulate storing token (in real app, you might handle this differently)
-                // localStorage.setItem("access_token", result.access_token);
-                
-                // Redirect after a short delay
-                setTimeout(() => {
-                    window.location.href = "/dashboard";
-                }, 1500);
-
-            } catch (err) {
-                errorText.textContent = err.message;
-                errorDiv.style.display = "flex";
-            } finally {
-                // Reset button state
-                submitBtn.disabled = false;
-                loadingSpinner.style.display = "none";
-                buttonText.innerHTML = '<i class="fas fa-key"></i> Sign In with JWT';
-            }
+        // Reset form state if there's an error and page reloads
+        document.addEventListener("DOMContentLoaded", function() {
+            const submitBtn = document.getElementById("submitBtn");
+            const loadingSpinner = document.getElementById("loadingSpinner");
+            const buttonText = document.getElementById("buttonText");
+            
+            // Reset button state
+            submitBtn.disabled = false;
+            loadingSpinner.style.display = "none";
+            buttonText.innerHTML = '<i class="fas fa-sign-in-alt"></i> Sign In';
         });
     </script>
 </body>
